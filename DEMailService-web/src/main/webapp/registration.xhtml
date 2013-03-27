@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Registration</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+</h:head>
+<h:body>
+    <f:view>
+        <h:form id="registrationForm">
+            <h:panelGrid columns="3">
+                <f:facet name="header">
+                    Registration
+                </f:facet>
+                <h:outputLabel value="Name:"/>
+                <h:inputText id="name" required="true" label="UserName" value="#{registrationBean.newUserDTO.name}"/>
+                <p:message for="name"/>
+                <h:outputLabel value="Surname:"/>
+                <h:inputText id="surname" value="#{registrationBean.newUserDTO.surname}"/>
+                <p:message for="surname"/>
+                <h:outputLabel value="Birthday:"/>
+                <h:inputText id="birthday" value="#{registrationBean.newUserDTO.birthday}">
+                    <f:convertDateTime pattern="dd.mm.yyyy"/>
+                </h:inputText>
+                <p:message for="birthday"/>
+                <h:outputLabel value="Phone number:"/>
+                <h:inputText id="phone" value="#{registrationBean.newUserDTO.phoneNumber}">
+                    <f:convertNumber/>
+                </h:inputText>
+                <p:message for="phone"/>
+                <h:outputText value="Email:"/>
+                <h:inputText id="mail" value="#{registrationBean.newUserDTO.mailAddress}"/>
+                <p:message for="mail"/>
+                <h:outputText value="Password"/>
+                <h:inputSecret id="password" value="#{registrationBean.newUserDTO.password}"/>
+                <p:message for="password"/>
+
+                <h:outputText value="Additional Email"/>
+                <h:inputText id="secondEmail" value="#{registrationBean.newUserDTO.secondEmail}"/>
+                <p:message for="secondEmail"/>
+
+                <p:commandButton ajax="false" action="#{registrationBean.register}" value="Register"/>
+
+                <p:commandButton process="@this" action="#{registrationBean.back}" value="Back">
+                    <p:resetInput target=":registrationForm"/>
+                </p:commandButton>
+            </h:panelGrid>
+        </h:form>
+
+    </f:view>
+</h:body>
+</html>
+

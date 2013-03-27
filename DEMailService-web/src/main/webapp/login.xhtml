@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+</h:head>
+<h:body bgcolor="white">
+    <f:view>
+        <h:form id="regForm">
+            <p:messages id="messages" globalOnly="true" style="color:red;margin:8px;"/>
+            <h:panelGrid columns="3" cellpadding="5">
+                <p:outputLabel for="username" value="Username:"/>
+                <p:inputText value="#{loginBean.userDTO.mailAddress}"
+                             id="username" label="username"/>
+                <p:message for="username"/>
+                <p:outputLabel for="password" value="Password:"/>
+                <p:password value="#{loginBean.userDTO.password}"
+                               id="password" label="password"/>
+                <p:message for="password"/>
+                <p:commandButton ajax="false" action="#{loginBean.login}" value="Login"/>
+                <p:commandButton process="@this" action="#{loginBean.register}" value="Register">
+                    <p:resetInput target=":regForm"/>
+                </p:commandButton>
+
+                <p:commandButton update=":regForm:remindMeDialogId"
+                                 value="Remind me"
+                                 onclick="remindMeDialog.show()"
+                                 type="button"/>
+            </h:panelGrid>
+
+            <p:dialog modal="true" showEffect="fade" hideEffect="fade"
+                      id="remindMeDialogId"
+                      header="Insert additional email address"
+                      widgetVar="remindMeDialog"
+                      resizable="false">
+
+                <p:inputText id="secondEmail" value="#{loginBean.secondEmail}"/>
+
+                <p:commandButton id="confirm" value="Send reminder"
+                                 update="messages" oncomplete="remindMeDialog.hide()"
+                                 actionListener="#{loginBean.remind}"/>
+                <p:commandButton id="decline" value="Cancel" onclick="remindMeDialog.hide()" type="button"/>
+
+            </p:dialog>
+        </h:form>
+
+    </f:view>
+</h:body>
+</html>
+

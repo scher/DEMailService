@@ -1,0 +1,23 @@
+############
+## Windows
+############
+
+# Windows image file caches
+Thumbs.db
+
+# Folder config file
+Desktop.ini
+
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+
+target/
+
+.idea/
+
+*.iml

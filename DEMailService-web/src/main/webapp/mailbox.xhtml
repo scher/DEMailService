@@ -1,0 +1,252 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+<h:head>
+    <title>DE Mail Service</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <f:metadata>
+        <f:event type="preRenderView" listener="#{mailBoxBean.updateState}"/>
+        <f:event type="preRenderView" listener="#{mailBoxBean.updateCritErrorMsg()}"/>
+    </f:metadata>
+
+    <style type="text/css">
+
+    </style>
+
+    <!--<script language="javascript" type="text/javascript" >-->
+    <!--jsf.ajax.addOnEvent(function (data) {-->
+    <!--if (data.source.type != "submit") {-->
+    <!--return;-->
+    <!--}-->
+
+    <!--switch (data.status) {-->
+    <!--case "begin":-->
+    <!--data.source.disabled = true;-->
+    <!--break;-->
+    <!--case "complete":-->
+    <!--data.source.disabled = false;-->
+    <!--break;-->
+    <!--}-->
+    <!--});-->
+    <!--</script>-->
+
+</h:head>
+<h:body>
+<f:view>
+
+<p:layout fullPage="true">
+
+    <p:layoutUnit position="north" minSize="120" maxSize="300"
+                  header="Welcom to DE Mail Service #{mailBoxBean.userDTO.mailAddress}"
+                  resizable="true"
+                  closable="false" collapsible="false">
+        <h:form>
+            <p:menubar>
+                <p:menuitem value="Compose" oncomplete="composeDlg.show();" update=":newLetterForm"
+                            action="#{mailBoxBean.letterDTO.clearCurrentLetter}"/>
+                <f:facet name="options">
+                    <p:commandButton value="Logout" ajax="false" action="#{mailBoxBean.logout}"/>
+                </f:facet>
+            </p:menubar>
+        </h:form>
+
+        <h:form id="errorMsgsForm">
+            <p:messages showDetail="true" style="color:red;margin:8px;"/>
+        </h:form>
+
+    </p:layoutUnit>
+
+
+    <p:layoutUnit id="FoldersContainer"
+                  position="west" size="230" header="Folders" resizable="false"
+                  closable="false" collapsible="true">
+        <h:form>
+            <p:toolbar>
+                <p:toolbarGroup>
+                    <p:commandButton title="Create" icon="ui-icon-circle-plus"
+                                     onclick="createFolderDlg.show();"/>
+                    <p:commandButton title="Delete"
+                                     icon="ui-icon-circle-minus"
+                                     update=":foldersForm, :lettersTableForm, :errorMsgsForm "
+                                     action="#{mailBoxBean.deleteFolder}"/>
+                    <p:separator/>
+                    <p:commandButton value="Rename" onclick="renameFolderDlg.show();"/>
+                </p:toolbarGroup>
+            </p:toolbar>
+        </h:form>
+
+        <h:form id="foldersForm">
+            <p:selectOneListbox style="width: 97%; max-height: 500px"
+                                value="#{mailBoxBean.folderDTO.selectedFolder}">
+                <f:selectItems value="#{mailBoxBean.folderDTO.folders}"/>
+                <p:ajax process="@this" update="foldersForm, :lettersTableForm, :errorMsgsForm"
+                        partialSubmit="false"
+                        listener="#{mailBoxBean.selectFolder}"
+                        event="change"/>
+
+            </p:selectOneListbox>
+        </h:form>
+
+    </p:layoutUnit>
+
+
+    <p:layoutUnit position="center" size="630">
+
+        <h:form id="lettersTableForm">
+
+            <p:poll interval="10000"
+                    listener="#{mailBoxBean.updateState()}" update="lettersTable"/>
+
+            <p:dataTable id="lettersTable"
+                         var="letter"
+                         scrollable="true"
+                         scrollHeight="600"
+                         rowKey="#{letter.id}"
+                         value="#{mailBoxBean.letterDTO.letters}"
+                         rowStyleClass="#{letter.unread == true ? 'new' : 'old'}"
+                         sortOrder="descending"
+                         resizableColumns="true">
+
+
+                <p:ajax event="rowToggle"
+                        update="letterData, lettersTable, changeFolderMenu"
+                        listener="#{mailBoxBean.showLetter(letter)}"/>
+                <p:column resizable="false" width="15">
+                    <p:rowToggler/>
+                </p:column>
+
+                <p:column headerText="From" footerText="From" width="150">
+                    #{letter.sender}
+                </p:column>
+
+                <p:column headerText="To" footerText="To" width="150">
+                    #{letter.recipients}
+                </p:column>
+
+                <p:column headerText="Thread" footerText="Thread">
+                    #{letter.thread}
+                </p:column>
+
+                <p:column resizable="false" headerText="Date" footerText="Date" width="70">
+                    <h:outputText value="#{letter.date}">
+                        <f:convertDateTime pattern="dd.MM.yyy"/>
+                    </h:outputText>
+                </p:column>
+
+
+                <p:rowExpansion>
+
+                    <p:toolbar>
+                        <p:toolbarGroup>
+
+                            <p:commandButton icon="ui-icon-trash" update="lettersTable, letterData"
+                                             action="#{mailBoxBean.deleteLetter(letter)}"/>
+
+                            <p:separator/>
+
+                            <p:selectOneMenu id="changeFolderMenu" styleClass="ui-selectonemenu"
+                                             value="#{mailBoxBean.folderDTO.newFolder}">
+                                <f:selectItem itemValue="" itemLabel="Select Folder  "/>
+                                <f:selectItems value="#{mailBoxBean.folderDTO.folders}"/>
+                                <p:ajax process="@this" update="lettersTable" partialSubmit="false"
+                                        listener="#{mailBoxBean.changeFolder(letter)}" event="change"/>
+                            </p:selectOneMenu>
+                        </p:toolbarGroup>
+                    </p:toolbar>
+
+                    <h:outputText id="letterData"
+                                  value="#{mailBoxBean.letterDTO.currentLetter.fullContents}"
+                                  escape="false"/>
+                </p:rowExpansion>
+
+            </p:dataTable>
+        </h:form>
+
+    </p:layoutUnit>
+
+</p:layout>
+
+
+<p:dialog widgetVar="composeDlg" modal="true" header="New Message" width="530" showEffect="fade" hideEffect="fade">
+
+    <h:form id="newLetterForm">
+
+        <h:panelGrid columns="2" cellspacing="5">
+            <h:outputText value="Recipient: "/>
+            <p:inputText value="#{mailBoxBean.letterDTO.currentLetter.recipients}"/>
+            <h:outputText value="Thread: "/>
+            <p:inputText value="#{mailBoxBean.letterDTO.currentLetter.thread}"/>
+        </h:panelGrid>
+
+        <p:separator/>
+
+        <p:editor widgetVar="editor" id="editor" value="#{mailBoxBean.letterDTO.currentLetter.data}"/>
+
+        <p:separator/>
+
+        <p:commandButton ajax="false" process="@this" update=":newLetterForm, :lettersTable" value="Send"
+                         onclick="composeDlg.hide()"
+                         action="#{mailBoxBean.sendNewLetter}"/>
+
+        <!--<p:commandButton ajax="false" process="@this" update=":newLetterForm" value="Cancel"-->
+        <!--onclick="composeDlg.hide()"-->
+        <!--action="">-->
+        <!--<p:resetInput target=":newLetterForm"/>-->
+        <!--</p:commandButton>-->
+
+    </h:form>
+
+</p:dialog>
+
+<p:dialog widgetVar="createFolderDlg" modal="true" header="Create Folder" showEffect="fade" hideEffect="fade">
+
+    <h:form id="createFolderForm">
+
+        <h:outputText value="Folder name:"/>
+        <p:inputText value="#{mailBoxBean.folderDTO.newFolder}"/>
+
+        <p:commandButton update=":foldersForm" value="Ok" onclick="createFolderForm.hide();" process="@this"
+                         action="#{mailBoxBean.createFolder}"/>
+        <p:commandButton value="Cancel" onclick="createFolderForm.hide();"/>
+
+    </h:form>
+
+</p:dialog>
+
+<p:dialog widgetVar="renameFolderDlg" modal="true" header="Rename Folder" showEffect="fade" hideEffect="fade">
+
+    <h:form id="renameFolderForm">
+
+        <h:outputText value="New name:"/>
+        <p:inputText value="#{mailBoxBean.folderDTO.newFolder}"/>
+
+        <p:commandButton update=":foldersForm" value="Ok" onclick="renameFolderForm.hide();" process="@this"
+                         action="#{mailBoxBean.renameFolder}"/>
+        <p:commandButton value="Cancel" onclick="renameFolderForm.hide();"/>
+
+    </h:form>
+
+</p:dialog>
+
+<p:dialog widgetVar="critErrorDlg" resizable="false" closable="false" visible="#{mailBoxBean.displayErrorDlg}"
+          id="critErrorDlgId" modal="true" header="Critical error" showEffect="fade" hideEffect="fade">
+
+    <h:form id="critError">
+
+        <p:panelGrid columns="1">
+            <h:outputText value="#{mailBoxBean.critErrorMsg}"/>
+
+            <p:commandButton value="Ok" action="#{mailBoxBean.logout}"/>
+        </p:panelGrid>
+    </h:form>
+
+</p:dialog>
+
+</f:view>
+</h:body>
+</html>
+
